@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Region News Aggregation Platform - POC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .filters {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        select {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        select:hover {
+            border-color: #667eea;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .load-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .load-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .load-btn:active {
+            transform: translateY(0);
+        }
+        
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        
+        .stat-item {
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            padding: 60px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .article {
+            background: white;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .article::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .article:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+        
+        .article h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 22px;
+            line-height: 1.4;
+        }
+        
+        .article p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+        
+        .article .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        
+        .meta-badge {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .relevance-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .article a {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: gap 0.2s;
+        }
+        
+        .article a:hover {
+            gap: 10px;
+        }
+        
+        .error {
+            background: #fff;
+            border: 2px solid #f44336;
+            color: #f44336;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span>🌍</span>
+                Multi-Region News Aggregation Platform
+            </h1>
+            <p>Personalized News Feed - Proof of Concept Demo</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="region">📍 Region</label>
+                <select id="region">
+                    <option value="north-america">North America</option>
+                    <option value="europe">Europe</option>
+                    <option value="asia">Asia</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="category">📂 Category</label>
+                <select id="category">
+                    <option value="technology">Technology</option>
+                    <option value="business">Business</option>
+                    <option value="sports">Sports</option>
+                    <option value="health">Health</option>
+                    <option value="entertainment">Entertainment</option>
+                </select>
+            </div>
+            
+            <button class="load-btn" onclick="loadFeed()">
+                🔄 Load Feed
+            </button>
+        </div>
+
+        <div id="stats" style="display: none;"></div>
+        <div id="feed"></div>
+    </div>
+
+    <script>
+        // Your API Gateway URL
+        const API_URL = 'https://djf939b2o8.execute-api.us-east-1.amazonaws.com/dev/feed';
+
+        async function loadFeed() {
+            const region = document.getElementById('region').value;
+            const category = document.getElementById('category').value;
+            const feedDiv = document.getElementById('feed');
+            const statsDiv = document.getElementById('stats');
+            
+            // Show loading
+            feedDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>⏳ Loading your personalized feed...</p>
+                </div>
+            `;
+            statsDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}?region=${region}&category=${category}&limit=10`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.feed && data.feed.length > 0) {
+                    // Show stats
+                    statsDiv.innerHTML = `
+                        <div class="stat-item">
+                            <div class="stat-number">${data.count}</div>
+                            <div class="stat-label">Articles Found</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${region}</div>
+                            <div class="stat-label">Region</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${category}</div>
+                            <div class="stat-label">Category</div>
+                        </div>
+                    `;
+                    statsDiv.style.display = 'flex';
+                    
+                    // Show articles
+                    feedDiv.innerHTML = data.feed.map(article => `
+                        <div class="article">
+                            <h3>${article.title || 'No title available'}</h3>
+                            <div class="meta">
+                                <span class="meta-badge">📰 ${article.source || 'Unknown'}</span>
+                                <span class="meta-badge">🌍 ${article.region || 'N/A'}</span>
+                                <span class="meta-badge">📂 ${article.category || 'N/A'}</span>
+                                <span class="relevance-score">⭐ ${article.relevance_score || '1.0'}</span>
+                            </div>
+                            <p>${article.description || 'No description available.'}</p>
+                            <a href="${article.url || '#'}" target="_blank">
+                                Read Full Article →
+                            </a>
+                        </div>
+                    `).join('');
+                } else {
+                    feedDiv.innerHTML = `
+                        <div class="loading">
+                            <p>📭 No articles found for this region and category.</p>
+                            <p style="margin-top: 10px; font-size: 14px;">Try selecting different filters above.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading feed:', error);
+                feedDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error Loading Feed</h3>
+                        <p>${error.message}</p>
+                        <p style="margin-top: 10px; font-size: 14px;">Check the browser console for details.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load feed automatically when page loads
+        window.onload = () => {
+            loadFeed();
+        };
+    </script>
+</body>
+</html>
+
+

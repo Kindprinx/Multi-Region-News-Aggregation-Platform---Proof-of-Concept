@@ -1,0 +1,451 @@
+# Multi-Region News Aggregation Platform - Proof of Concept
+
+## Squad 5 - Minimal POC Implementation
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [What This POC Demonstrates](#what-this-poc-demonstrates)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Setup Instructions](#setup-instructions)
+- [Testing the POC](#testing-the-poc)
+- [API Documentation](#api-documentation)
+- [Troubleshooting](#troubleshooting)
+- [What's Next](#whats-next)
+
+---
+
+## 🎯 Overview
+
+This is a **minimal Proof of Concept (POC)** that demonstrates the core functionality of our Multi-Region News Aggregation Platform. The POC proves that:
+
+✅ Serverless architecture can ingest and process news articles  
+✅ Personalized feeds can be delivered based on user preferences  
+✅ The system can respond in <2 seconds with real data  
+✅ The architecture is cost-effective ($0 on AWS free tier)  
+
+**Note:** This is a simplified version. The full production architecture includes multi-region deployment, ML-powered recommendations, advanced caching, and comprehensive monitoring.
+
+---
+
+## 🌟 What This POC Demonstrates
+
+### Components Built
+
+1. **News Ingestion Pipeline**
+   - Fetches real news from NewsAPI.org
+   - Stores articles in DynamoDB
+   - Processes and categorizes content
+
+2. **Personalized Feed API**
+   - REST API with region/category filtering
+   - Simple relevance scoring algorithm
+   - CORS-enabled for web access
+
+3. **Web Frontend**
+   - Responsive single-page application
+   - Interactive filters (region, category)
+   - Real-time feed updates
+
+### What It Proves
+
+| Requirement | How POC Proves It |
+|-------------|-------------------|
+| **Scalable Ingestion** | Lambda auto-scales to handle varying loads |
+| **Personalization** | API filters articles by region and category |
+| **Low Latency** | API responds in ~650ms (target: <2s) |
+| **Cost Efficiency** | Serverless = $0 cost on free tier |
+| **Cloud-Native** | 100% AWS managed services |
+
+---
+
+## 🏗️ Architecture
+
+### POC Architecture (Simplified)
+
+```
+┌──────────────┐
+│  NewsAPI.org │
+└──────┬───────┘
+       │
+       ▼
+┌─────────────────┐
+│ Lambda Function │ ← EventBridge (scheduled)
+│  (Ingestion)    │
+└────────┬────────┘
+         │
+         ▼
+    ┌──────────┐
+    │ DynamoDB │
+    │  Table   │
+    └────┬─────┘
+         │
+         ▼
+┌─────────────────┐
+│ Lambda Function │ ← API Gateway
+│   (Feed API)    │
+└────────┬────────┘
+         │
+         ▼
+    ┌─────────┐
+    │   S3    │
+    │ Website │
+    └────┬────┘
+         │
+         ▼
+    ┌─────────┐
+    │  User   │
+    │ Browser │
+    └─────────┘
+```
+
+### AWS Services Used
+
+- **Lambda**: Serverless compute for ingestion and API
+- **DynamoDB**: NoSQL database for article storage
+- **API Gateway**: REST API management
+- **S3**: Static website hosting
+- **EventBridge**: Scheduled ingestion (manual in POC)
+
+---
+
+## ✅ Prerequisites
+
+Before starting, you need:
+
+1. **AWS Account** (free tier eligible)
+2. **NewsAPI Key** (free at https://newsapi.org/register)
+3. **Web Browser** (Chrome, Firefox, Safari, or Edge)
+4. **Basic AWS Console Knowledge**
+
+---
+
+## 🚀 Setup Instructions
+
+### Step 1: Create DynamoDB Table (5 minutes)
+
+1. Go to **DynamoDB Console**: https://console.aws.amazon.com/dynamodb/
+2. Click **"Create table"**
+3. Configure:
+   ```
+   Table name: NewsArticles
+   Partition key: article_id (String)
+   ```
+4. Click **"Create table"**
+5. Wait until status shows "Active"
+
+---
+
+### Step 2: Create Ingestion Lambda (15 minutes)
+
+#### 2.1 Create Function
+
+1. Go to **Lambda Console**: https://console.aws.amazon.com/lambda/
+2. Click **"Create function"**
+3. Configure:
+   ```
+   Function name: news-ingestion
+   Runtime: Python 3.12
+   ```
+4. Click **"Create function"**
+
+#### 2.2 Add Code
+
+Replace the default code with:
+
+code in news-ingestion.py  
+
+
+
+**Replace** `YOUR_NEWSAPI_KEY_HERE` with your actual NewsAPI key!
+
+#### 2.3 Configure Permissions
+
+1. Click **"Configuration"** tab → **"Permissions"**
+2. Click on the **Role name**
+3. Click **"Add permissions"** → **"Attach policies"**
+4. Search for: `AmazonDynamoDBFullAccess`
+5. Check the box and click **"Add permissions"**
+
+#### 2.4 Set Timeout
+
+1. Click **"Configuration"** → **"General configuration"** → **"Edit"**
+2. Set **Timeout** to `30 seconds`
+3. Click **"Save"**
+
+#### 2.5 Test
+
+1. Click **"Test"** tab
+2. Click **"Create new event"**
+3. Event name: `TestIngestion`
+4. Click **"Save"**
+5. Click **"Test"** button
+6. Verify response shows: `"Successfully ingested X articles"`
+7. Go to DynamoDB → NewsArticles table → Check items exist
+
+✅ **Step 1 Complete!** Articles are now in DynamoDB.
+
+---
+
+### Step 3: Create Feed API Lambda (15 minutes)
+
+#### 3.1 Create Function
+
+1. Go to Lambda Console
+2. Click **"Create function"**
+3. Configure:
+   ```
+   Function name: feed-api
+   Runtime: Python 3.12
+   ```
+4. Click **"Create function"**
+
+#### 3.2 Add Code
+
+in feed-api.py file
+
+
+
+#### 3.3 Configure Permissions
+
+1. Configuration → Permissions → Click role name
+2. Add permissions → Attach `AmazonDynamoDBReadOnlyAccess`
+
+#### 3.4 Set Timeout
+
+Configuration → General configuration → Set timeout to `30 seconds`
+
+---
+
+### Step 4: Create API Gateway (15 minutes)
+
+#### 4.1 Create API
+
+1. Go to **API Gateway Console**: https://console.aws.amazon.com/apigateway/
+2. Click **"Create API"**
+3. Choose **"REST API"** → **"Build"**
+4. Configure:
+   ```
+   API name: news-feed-api
+   Endpoint Type: Regional
+   ```
+5. Click **"Create API"**
+
+#### 4.2 Create Resource
+
+1. Click **"Actions"** → **"Create Resource"**
+2. Configure:
+   ```
+   Resource Name: feed
+   Resource Path: /feed
+   Enable API Gateway CORS: ✅ CHECK
+   ```
+3. Click **"Create Resource"**
+
+#### 4.3 Create GET Method
+
+1. Select `/feed` resource
+2. Click **"Actions"** → **"Create Method"** → Select **"GET"** → Click checkmark
+3. Configure:
+   ```
+   Integration type: Lambda Function
+   Use Lambda Proxy integration: ✅ CHECK
+   Lambda Function: feed-api
+   ```
+4. Click **"Save"** → Click **"OK"** on permission popup
+
+#### 4.4 Enable CORS
+
+1. Select `/feed` resource
+2. Click **"Actions"** → **"Enable CORS"**
+3. Click **"Enable CORS and replace existing CORS headers"**
+4. Click **"Yes, replace existing values"**
+
+#### 4.5 Deploy API
+
+1. Click **"Actions"** → **"Deploy API"**
+2. Configure:
+   ```
+   Deployment stage: [New Stage]
+   Stage name: dev
+   ```
+3. Click **"Deploy"**
+4. **Copy the Invoke URL** (looks like: `https://xxxxx.execute-api.us-east-1.amazonaws.com/dev`)
+
+#### 4.6 Test API
+
+Open browser and paste:
+```
+https://YOUR_INVOKE_URL/dev/feed?region=north-america&category=technology
+```
+
+You should see JSON with articles! ✅
+
+---
+
+### Step 5: Deploy Frontend (15 minutes)
+
+#### 5.1 Create HTML File
+
+Save this as `index.html`:
+
+add code from index.html file 
+
+
+**IMPORTANT:** Replace `YOUR_API_GATEWAY_URL_HERE` with your actual API Gateway URL!
+
+#### 5.2 Test Locally
+
+1. Double-click `index.html` to open in browser
+2. Articles should load automatically
+3. Try changing filters
+
+✅ **Works!**
+
+#### 5.3 Deploy to S3 (Optional)
+
+1. Go to **S3 Console**
+2. Create bucket: `news-poc-YOUR-NAME` (must be unique)
+3. Uncheck "Block all public access"
+4. Enable static website hosting (Properties → Static website hosting)
+5. Upload `index.html`
+6. Make file public
+7. Access via bucket website endpoint
+
+---
+
+## 🧪 Testing the POC
+
+### Test 1: Verify Ingestion
+
+```bash
+# Run ingestion Lambda
+# Check DynamoDB table has articles
+```
+
+### Test 2: Test API
+
+```bash
+curl "https://YOUR_API_URL/dev/feed?region=north-america&category=technology"
+```
+
+Expected: JSON with 10 articles
+
+### Test 3: Test Frontend
+
+1. Open website
+2. Change region to "Europe"
+3. Click "Load Feed"
+4. Verify feed updates
+
+---
+
+## 📡 API Documentation
+
+### Endpoint
+
+```
+GET /feed
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| region | string | No | north-america | Geographic region |
+| category | string | No | technology | News category |
+| limit | integer | No | 10 | Number of articles |
+
+### Example
+
+```bash
+curl "https://djf939b2o8.execute-api.us-east-1.amazonaws.com/dev/feed?region=north-america&category=technology&limit=5"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "count": 5,
+  "preferences": {
+    "region": "north-america",
+    "category": "technology"
+  },
+  "feed": [...]
+}
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Issue: "Missing Authentication Token"
+**Fix:** Add `/feed` to URL
+```
+✅ https://xxx.amazonaws.com/dev/feed
+❌ https://xxx.amazonaws.com/dev
+```
+
+### Issue: No articles in DynamoDB
+**Fix:** 
+- Check NewsAPI key is valid
+- Verify Lambda has DynamoDB permissions
+- Check CloudWatch logs for errors
+
+### Issue: CORS error
+**Fix:**
+- Enable CORS in API Gateway
+- Verify Lambda returns CORS headers
+
+### Issue: Empty feed
+**Fix:**
+- Run ingestion Lambda again
+- Check articles exist with matching region/category
+
+---
+
+## 🎯 What's Next
+
+This POC proves the core concepts. For production, we would add:
+
+1. **Multi-region deployment** (us-east-1, eu-west-1, ap-southeast-1)
+2. **Amazon Personalize** for ML-powered recommendations
+3. **ElastiCache** for caching and performance
+4. **CloudFront** for global CDN
+5. **CloudWatch** dashboards and alarms
+6. **EventBridge** for automated scheduling
+7. **Cognito** for user authentication
+8. **WAF** for security
+
+---
+
+## 📊 POC Metrics
+
+| Metric | Result |
+|--------|--------|
+| API Response Time | ~650ms |
+| Articles Ingested | 10 |
+| Total Cost | $0 (free tier) |
+| Setup Time | ~2 hours |
+| Services Used | 4 (Lambda, DynamoDB, API Gateway, S3) |
+
+---
+
+## 📝 Files Structure
+
+```
+/
+├── README.md (this file)
+├── index.html (frontend)
+└── /lambda
+    ├── news-ingestion.py
+    └── feed-api.py
+```
+
+---
+
+**Built by Squad 5 CWA  | POC Completed
