@@ -1,41 +1,35 @@
-# Multi-Region News Aggregation Platform - Proof of Concept
+Multi-Region News Aggregation Platform - Proof of Concept
 
-## Squad 5 - Minimal POC Implementation
+Squad 5 - Minimal POC Implementation
 
----
+📋 Table of Contents
 
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [What This POC Demonstrates](#what-this-poc-demonstrates)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Setup Instructions](#setup-instructions)
-- [Testing the POC](#testing-the-poc)
-- [API Documentation](#api-documentation)
-- [Troubleshooting](#troubleshooting)
-- [What's Next](#whats-next)
+- [Overview]overview)
+- [What This POC Demonstrates](what-this-poc-demonstrates)
+- [Architecture](architecture)
+- [Prerequisites](prerequisites)
+- [Setup Instructions](setup-instructions)
+- [Testing the POC](testing-the-poc)
+- [API Documentation](api-documentation)
+- [Troubleshooting](troubleshooting)
+- [What's Next](whats-next)
 
 ---
 
-## 🎯 Overview
+ Overview
 
-This is a **minimal Proof of Concept (POC)** that demonstrates the core functionality of our Multi-Region News Aggregation Platform. The POC proves that:
+This is a minimal Proof of Concept (POC) that demonstrates the core functionality of our Multi-Region News Aggregation Platform. 
+The POC proves that:
+Serverless architecture can ingest and process news articles  
+Personalized feeds can be delivered based on user preferences  
+The system can respond in <2 seconds with real data  
+The architecture is cost-effective ($0 on AWS free 
 
-✅ Serverless architecture can ingest and process news articles  
-✅ Personalized feeds can be delivered based on user preferences  
-✅ The system can respond in <2 seconds with real data  
-✅ The architecture is cost-effective ($0 on AWS free tier)  
+What This POC Demonstrates
 
-**Note:** This is a simplified version. The full production architecture includes multi-region deployment, ML-powered recommendations, advanced caching, and comprehensive monitoring.
+Components Built
 
----
-
-## 🌟 What This POC Demonstrates
-
-### Components Built
-
-1. **News Ingestion Pipeline**
+1. News Ingestion Pipeline**
    - Fetches real news from NewsAPI.org
    - Stores articles in DynamoDB
    - Processes and categorizes content
